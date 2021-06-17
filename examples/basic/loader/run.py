@@ -15,28 +15,13 @@ with start_plasma_store(**kwargs):
     pipeline = OremdaPipeline(client)
 
     operators = [
-        {"name": "view"},
         {
-            "name": "multiply",
+            "name": "eels_background_subtract",
             "params": {
-                "value": 2
+                "start": 268,
+                "stop": 277,
             }
         },
-        {"name": "view"},
-        {
-            "name": "add",
-            "params": {
-                "value": -4
-            }
-        },
-        {"name": "view"},
-        {
-            "name": "add",
-            "params": {
-                "value": -3
-            }
-        },
-        {"name": "view"},
     ]
 
     data = np.array([5, 9, 2, 3, 8, 10], dtype=np.int16)
