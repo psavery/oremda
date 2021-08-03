@@ -1,0 +1,7 @@
+[flake8]
+
+# Explanations for ignoring errors:
+#
+#   E203: not PEP 8 compliant.
+#
+ignore: E203
