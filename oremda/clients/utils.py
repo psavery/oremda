@@ -22,7 +22,8 @@ def run_containers(client, names, args_list, kwargs_list):
         try:
             for name, args, kwargs in zip(names, args_list, kwargs_list):
                 container = stack.enter_context(
-                                run_container(client, name, *args, **kwargs))
+                    run_container(client, name, *args, **kwargs)
+                )
                 containers.append(container)
 
             yield containers
@@ -71,4 +72,4 @@ def flat_get_item(flat, item, delimiter='.'):
     prefix = f'{item}{delimiter}'
     keys = [x for x in flat.keys() if x.startswith(prefix)]
 
-    return {key[len(prefix):]: flat[key] for key in keys}
+    return {key[len(prefix) :]: flat[key] for key in keys}

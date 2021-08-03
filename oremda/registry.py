@@ -3,10 +3,17 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from oremda.typing import IOType, JSONType, PortKey, PortInfo, TerminateTaskMessage
+from oremda.typing import (
+    IOType,
+    JSONType,
+    PortKey,
+    PortInfo,
+    TerminateTaskMessage,
+)
 from oremda.shared_resources import Client as MemoryClient
 from oremda.clients.base.client import ClientBase as ContainerClient
 from oremda.clients.base.container import ContainerBase
+
 
 class ImageInfo(BaseModel):
     name: str = Field(...)
@@ -18,8 +25,11 @@ class ImageInfo(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+
 class Registry:
-    def __init__(self, memory_client: MemoryClient, container_client: ContainerClient):
+    def __init__(
+        self, memory_client: MemoryClient, container_client: ContainerClient
+    ):
         self.memory_client = memory_client
         self.container_client = container_client
         self.images: Dict[str, ImageInfo] = {}
@@ -34,21 +44,20 @@ class Registry:
         if info is None:
             labels = self._inspect(image_name)
 
-            info = ImageInfo(**{
-                'name': labels.name,
-                'inputs': {
-                    name: PortInfo(**{
-                        'name': name,
-                        'type': value.type
-                    }) for name, value in labels.ports.input.items()
-                },
-                'outputs': {
-                    name: PortInfo(**{
-                        'name': name, 'type': value.type
-                    }) for name, value in labels.ports.output.items()
-                },
-                'params': {k: v.dict() for k, v in labels.params.items()}
-            })
+            info = ImageInfo(
+                **{
+                    'name': labels.name,
+                    'inputs': {
+                        name: PortInfo(**{'name': name, 'type': value.type})
+                        for name, value in labels.ports.input.items()
+                    },
+                    'outputs': {
+                        name: PortInfo(**{'name': name, 'type': value.type})
+                        for name, value in labels.ports.output.items()
+                    },
+                    'params': {k: v.dict() for k, v in labels.params.items()},
+                }
+            )
             self.images[image_name] = info
 
         return info
@@ -72,12 +81,17 @@ class Registry:
         info = self._info(image_name)
         return info.container is not None
 
-    def run(self, image_name,):
+    def run(
+        self,
+        image_name,
+    ):
         info = self._info(image_name)
         container = info.container
         if container is None:
             try:
-                container = self.container_client.run(image_name, **self.run_kwargs)
+                container = self.container_client.run(
+                    image_name, **self.run_kwargs
+                )
                 info.container = container
             except Exception as e:
                 print(f'An exception was caught: {e}')

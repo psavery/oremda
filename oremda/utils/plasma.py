@@ -11,8 +11,9 @@ def start_plasma_store(memory, socket_path):
     stdout_file = None
     stderr_file = None
     try:
-        proc = subprocess.Popen(command, stdout=stdout_file,
-                                stderr=stderr_file)
+        proc = subprocess.Popen(
+            command, stdout=stdout_file, stderr=stderr_file
+        )
         # Wait a second to let it finish starting...
         time.sleep(1)
         rc = proc.poll()

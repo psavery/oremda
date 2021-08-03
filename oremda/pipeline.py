@@ -1,10 +1,19 @@
-from oremda.typing import EdgeJSON, JSONType, IdType, NodeJSON, PipelineJSON, PortKey, PortInfo
+from oremda.typing import (
+    EdgeJSON,
+    JSONType,
+    IdType,
+    NodeJSON,
+    PipelineJSON,
+    PortKey,
+    PortInfo,
+)
 from typing import Any, Optional, Dict, Sequence, Set
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
 from oremda.shared_resources import Client as MemoryClient, DataArray
+
 
 class PipelineEdge:
     def __init__(
@@ -13,7 +22,7 @@ class PipelineEdge:
         output_port: PortInfo,
         input_node_id: IdType,
         input_port: PortInfo,
-        id: Optional[IdType]=None
+        id: Optional[IdType] = None,
     ):
         self.id = unique_id(id)
         self.output_node_id = output_node_id
@@ -21,8 +30,9 @@ class PipelineEdge:
         self.output_port = output_port
         self.input_port = input_port
 
+
 class PipelineNode:
-    def __init__(self, t: NodeType, id: Optional[IdType]=None):
+    def __init__(self, t: NodeType, id: Optional[IdType] = None):
         self._id = unique_id(id)
         self._type = t
         self._inputs: Dict[PortKey, PortInfo] = {}
@@ -65,6 +75,7 @@ class PipelineNode:
 
         return _port == port
 
+
 class OperatorNode(PipelineNode):
     def __init__(self, id=None):
         super().__init__(NodeType.Operator, id)
@@ -78,15 +89,28 @@ class OperatorNode(PipelineNode):
     def operator(self, operator: OperatorHandle):
         self._operator = operator
 
-def validate_edge(output_node: PipelineNode, output_port: PortInfo, input_node: PipelineNode, input_port: PortInfo):
+
+def validate_edge(
+    output_node: PipelineNode,
+    output_port: PortInfo,
+    input_node: PipelineNode,
+    input_port: PortInfo,
+):
     if output_port.type != input_port.type:
         raise Exception('Cannot connect a Meta port to a Data port')
 
     if not output_node.has(output_port, IOType.Out):
-        raise Exception(f'The port "{output_port.name}" with type "{output_port.type}" does not exist on the output node.')
+        raise Exception(
+            f'The port "{output_port.name}" with type "{output_port.type}" '
+            'does not exist on the output node.'
+        )
 
     if not input_node.has(input_port, IOType.In):
-        raise Exception(f'The port "{input_port.name}" with type "{input_port.type}" does not exist on the input node.')
+        raise Exception(
+            f'The port "{input_port.name}" with type "{input_port.type}" '
+            'does not exist on the input node.'
+        )
+
 
 def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
     for node_id, node in nodes.items():
@@ -95,7 +119,12 @@ def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
 
 
 class Pipeline:
-    def __init__(self, client: MemoryClient, registry: Registry, id: Optional[IdType]=None):
+    def __init__(
+        self,
+        client: MemoryClient,
+        registry: Registry,
+        id: Optional[IdType] = None,
+    ):
         self._id = unique_id(id)
         self.client = client
         self.registry = registry
@@ -110,7 +139,9 @@ class Pipeline:
     def id(self):
         return self._id
 
-    def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
+    def set_graph(
+        self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]
+    ):
         self_nodes: Dict[IdType, OperatorNode] = {}
         self_edges: Dict[IdType, PipelineEdge] = {}
         self_node_to_edges: Dict[IdType, Set[IdType]] = {}
@@ -122,15 +153,23 @@ class Pipeline:
         for edge in edges:
             output_node = self_nodes.get(edge.output_node_id)
             if output_node is None:
-                raise Exception(f"The node {edge.output_node_id} referenced by the edge {edge.id} does not exist.")
+                raise Exception(
+                    f'The node {edge.output_node_id} referenced by the edge '
+                    '{edge.id} does not exist.'
+                )
 
             input_node = self_nodes.get(edge.input_node_id)
             if input_node is None:
-                raise Exception(f"The node {edge.input_node_id} referenced by the edge {edge.id} does not exist.")
+                raise Exception(
+                    f'The node {edge.input_node_id} referenced by the edge '
+                    '{edge.id} does not exist.'
+                )
 
             self_edges[edge.id] = edge
 
-            validate_edge(output_node, edge.output_port, input_node, edge.input_port)
+            validate_edge(
+                output_node, edge.output_port, input_node, edge.input_port
+            )
 
             self_node_to_edges.setdefault(output_node.id, set()).add(edge.id)
             self_node_to_edges.setdefault(input_node.id, set()).add(edge.id)
@@ -138,12 +177,23 @@ class Pipeline:
         # Verify that all the required operator input ports have a connection
         for node in nodes:
 
-            required_input_ports = {port.name for port in node.inputs.values() if port.required}
-            existing_input_ports = {self_edges[edge_id].input_port.name for edge_id in self_node_to_edges[node.id] if self_edges[edge_id].input_node_id == node.id}
-            missing_input_ports = required_input_ports.difference(existing_input_ports)
+            required_input_ports = {
+                port.name for port in node.inputs.values() if port.required
+            }
+            existing_input_ports = {
+                self_edges[edge_id].input_port.name
+                for edge_id in self_node_to_edges[node.id]
+                if self_edges[edge_id].input_node_id == node.id
+            }
+            missing_input_ports = required_input_ports.difference(
+                existing_input_ports
+            )
 
             if missing_input_ports:
-                raise Exception(f"The node {node.id} has the following missing input connections: {missing_input_ports}")
+                raise Exception(
+                    f'The node {node.id} has the following missing input '
+                    f'connections: {missing_input_ports}'
+                )
 
         self.nodes = self_nodes
         self.edges = self_edges
@@ -152,12 +202,7 @@ class Pipeline:
         self.meta = {}
 
     def run(self):
-        all_operators = set(
-            map(
-                lambda t: t[0],
-                self.nodes.items()
-            )
-        )
+        all_operators = set(map(lambda t: t[0], self.nodes.items()))
         run_operators = set()
 
         self.observer.on_start(self)
@@ -182,7 +227,9 @@ class Pipeline:
                 input_meta = {}
 
                 for edge in input_edges:
-                    source_port_id = port_id(edge.output_node_id, edge.output_port.name)
+                    source_port_id = port_id(
+                        edge.output_node_id, edge.output_port.name
+                    )
 
                     if edge.output_port.type == PortType.Data:
                         data_dict = self.data
@@ -204,8 +251,13 @@ class Pipeline:
                     operator = operator_node.operator
 
                     if operator is None:
-                        err = Exception(f"The operator node {operator_id} does not have an associated operator handle.")
-                        self.observer.on_operator_error(self, operator_node, err)
+                        err = Exception(
+                            f'The operator node {operator_id} does not have '
+                            'an associated operator handle.'
+                        )
+                        self.observer.on_operator_error(
+                            self, operator_node, err
+                        )
                         self.observer.on_error(self, err)
                         raise err
 
@@ -214,19 +266,29 @@ class Pipeline:
                         self.registry.run(operator.image_name)
 
                     try:
-                        output_meta, output_data = operator.execute(input_meta, input_data)
+                        output_meta, output_data = operator.execute(
+                            input_meta, input_data
+                        )
                     except Exception as err:
-                        self.observer.on_operator_error(self, operator_node, err)
+                        self.observer.on_operator_error(
+                            self, operator_node, err
+                        )
                         self.observer.on_error(self, err)
                         raise
 
                     for edge in output_edges:
-                        sink_port_id = port_id(edge.output_node_id, edge.output_port.name)
+                        sink_port_id = port_id(
+                            edge.output_node_id, edge.output_port.name
+                        )
 
                         if edge.output_port.type == PortType.Data:
-                            self.data[sink_port_id] = output_data[edge.output_port.name]
+                            self.data[sink_port_id] = output_data[
+                                edge.output_port.name
+                            ]
                         else:
-                            self.meta[sink_port_id] = output_meta[edge.output_port.name]
+                            self.meta[sink_port_id] = output_meta[
+                                edge.output_port.name
+                            ]
 
                     run_operators.add(operator_id)
                     count = count + 1
@@ -237,6 +299,7 @@ class Pipeline:
                 raise Exception("The pipeline couldn't be resolved")
 
         self.observer.on_complete(self)
+
 
 class PipelineObserver:
     def on_start(self, pipeline: Pipeline):
@@ -254,7 +317,9 @@ class PipelineObserver:
     def on_operator_complete(self, pipeline: Pipeline, operator: OperatorNode):
         pass
 
-    def on_operator_error(self, pipeline: Pipeline, operator: OperatorNode, error: Any):
+    def on_operator_error(
+        self, pipeline: Pipeline, operator: OperatorNode, error: Any
+    ):
         pass
 
 
@@ -269,7 +334,10 @@ def validate_port_type(type):
 
     return type
 
-def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry):
+
+def deserialize_pipeline(
+    obj: JSONType, client: MemoryClient, registry: Registry
+):
     pipeline_json = PipelineJSON(**obj)
     _id = pipeline_json.id
     _nodes = pipeline_json.nodes
@@ -317,6 +385,7 @@ def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry
 
     return pipeline
 
+
 def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
     _nodes: Sequence[NodeJSON] = []
 
@@ -329,11 +398,9 @@ def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
         for name, value in operator.parameters.items():
             _params[name] = value
 
-        _node = NodeJSON(**{
-            'id': node.id,
-            'image': operator.image_name,
-            'params': _params
-        })
+        _node = NodeJSON(
+            **{'id': node.id, 'image': operator.image_name, 'params': _params}
+        )
 
         _nodes.append(_node)
 
@@ -342,18 +409,19 @@ def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
     for edge in pipeline.edges.values():
         port_type = edge.output_port.type
 
-        _edge = EdgeJSON(**{
-            'type': port_type,
-            'from': {
-                'id': edge.output_node_id,
-                'port': edge.output_port.name
-            },
-            'to': {
-                'id': edge.input_node_id,
-                'port': edge.input_port.name
+        _edge = EdgeJSON(
+            **{
+                'type': port_type,
+                'from': {
+                    'id': edge.output_node_id,
+                    'port': edge.output_port.name,
+                },
+                'to': {'id': edge.input_node_id, 'port': edge.input_port.name},
             }
-        })
+        )
 
         _edges.append(_edge)
 
-    return PipelineJSON(**{'nodes': _nodes, 'edges': _edges, 'id': pipeline.id})
+    return PipelineJSON(
+        **{'nodes': _nodes, 'edges': _edges, 'id': pipeline.id}
+    )

@@ -8,7 +8,6 @@ from oremda.clients.singularity.image import SingularityImage
 
 
 class SingularityClient(ClientBase):
-
     @property
     def client(self):
         return client

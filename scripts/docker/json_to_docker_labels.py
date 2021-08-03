@@ -21,5 +21,5 @@ if __name__ == '__main__':
     for key, value in labels.items():
         output += f'{key}={value} {ending}'
 
-    output = output[:-len(ending)]
+    output = output[: -len(ending)]
     print(output)

@@ -23,8 +23,11 @@ with start_plasma_store(**plasma_kwargs):
     self_container = container_client.self_container()
 
     run_kwargs = {
-        'volumes': {mount.source: {'bind': mount.destination} for mount in self_container.mounts},
-        'ipc_mode': f"container:{self_container.id}",
+        'volumes': {
+            mount.source: {'bind': mount.destination}
+            for mount in self_container.mounts
+        },
+        'ipc_mode': f'container:{self_container.id}',
         'detach': True,
         'working_dir': DEFAULT_DATA_DIR,
     }
@@ -34,7 +37,9 @@ with start_plasma_store(**plasma_kwargs):
     with open('/pipeline.json') as f:
         pipeline_obj = json.load(f)
 
-    pipeline = oremda.pipeline.deserialize_pipeline(pipeline_obj, memory_client, registry)
+    pipeline = oremda.pipeline.deserialize_pipeline(
+        pipeline_obj, memory_client, registry
+    )
     pipeline.run()
 
     registry.release()

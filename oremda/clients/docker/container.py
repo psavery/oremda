@@ -22,18 +22,17 @@ class DockerContainer(ContainerBase):
             return mount['Type'] == 'bind'
 
         def map_fn(mount: Any) -> MountInfo:
-            return MountInfo(**{
-                'source': mount['Source'],
-                'destination': mount['Destination']
-            })
+            return MountInfo(
+                **{
+                    'source': mount['Source'],
+                    'destination': mount['Destination'],
+                }
+            )
 
         return list(
             map(
                 map_fn,
-                filter(
-                    filter_fn,
-                    self.container.attrs.get('Mounts', [])
-                )
+                filter(filter_fn, self.container.attrs.get('Mounts', [])),
             )
         )
 

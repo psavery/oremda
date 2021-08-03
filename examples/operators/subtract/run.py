@@ -5,16 +5,18 @@ import numpy as np
 from oremda import operator
 from oremda.typing import JSONType, PortKey, MetaType, DataType
 
+
 def eloss_to_pixel(eloss, energy):
     aa = np.where(eloss >= energy)[0]
     return aa[0]
 
+
 @operator
 def subtract(
-        meta: Dict[PortKey, MetaType],
-        data: Dict[PortKey, DataType],
-        parameters: JSONType
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+    meta: Dict[PortKey, MetaType],
+    data: Dict[PortKey, DataType],
+    parameters: JSONType,
+) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
     start = parameters.get('start', 0)
     stop = parameters.get('stop', 0)
 
@@ -28,7 +30,7 @@ def subtract(
     start_bg = eloss_to_pixel(eloss_bg, start)
     stop_bg = eloss_to_pixel(eloss_bg, stop)
 
-    assert(stop_spec - start_spec == stop_bg - start_bg)
+    assert stop_spec - start_spec == stop_bg - start_bg
 
     output_data = {
         'eloss': eloss[start_spec:stop_spec],

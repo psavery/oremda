@@ -44,8 +44,6 @@ def vtk_reader(meta, data, parameters):
 
     data = read_file(filepath)
 
-    output = {
-        'data': to_numpy_array(data)
-    }
+    output = {'data': to_numpy_array(data)}
 
     return meta, output

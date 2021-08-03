@@ -7,7 +7,6 @@ from oremda.typing import OperatorLabels
 
 
 class ImageBase(ABC):
-
     @property
     @abstractmethod
     def raw_labels(self):

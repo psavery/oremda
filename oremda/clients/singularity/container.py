@@ -7,7 +7,6 @@ from oremda.clients.base import ContainerBase
 
 
 class SingularityContainer(ContainerBase):
-
     def __init__(self, image, name=None):
         self.image = image
         self.name = name

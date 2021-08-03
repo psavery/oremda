@@ -13,7 +13,9 @@ container_types = {
 }
 
 
-def Client(type: Union[ContainerType, str] = ContainerType.Docker) -> ClientBase:
+def Client(
+    type: Union[ContainerType, str] = ContainerType.Docker
+) -> ClientBase:
     type = ContainerType(type)
     if type not in container_types:
         raise Exception(f'Unknown container type: {type}')

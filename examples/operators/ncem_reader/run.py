@@ -7,12 +7,13 @@ import ncempy.io as nio
 from oremda import operator
 from oremda.typing import JSONType, PortKey, MetaType, DataType
 
+
 @operator
 def ncem_reader(
-        meta: Dict[PortKey, MetaType],
-        data: Dict[PortKey, DataType],
-        parameters: JSONType
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+    meta: Dict[PortKey, MetaType],
+    data: Dict[PortKey, DataType],
+    parameters: JSONType,
+) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
     filename = parameters.get('filename', '')
 
     dPath = Path('/data')
@@ -20,7 +21,7 @@ def ncem_reader(
 
     spectrum = nio.read(dPath / fPath)
     eloss = spectrum['coords'][1]
-    spec = spectrum['data'][0,:]
+    spec = spectrum['data'][0, :]
 
     output_meta: Dict[PortKey, MetaType] = {}
 
